@@ -1,85 +1,125 @@
 <?php
+
+require_once __DIR__ . '/app/Controllers/AuthController.php';
 require_once __DIR__ . '/app/Controllers/UsuariosController.php';
 require_once __DIR__ . '/app/Controllers/PessoasController.php';
-require_once __DIR__ . '/app/Controllers/TipoAtendimentosController.php';
+require_once __DIR__ . '/app/Controllers/TiposAtendimentosController.php';
 require_once __DIR__ . '/app/Controllers/AtendimentosController.php';
+require_once __DIR__ . '/app/Middleware/auth.php';
 
-$controller = $_GET['controller'] ?? 'home';
-$action     = $_GET['action']     ?? 'index';
+$controller = $_GET['controller'] ?? 'auth';
+$action     = $_GET['action']     ?? 'login';
 
-// -------------------------------------------------------
-// USUARIOS
-// -------------------------------------------------------
-if ($controller === 'usuarios') {
+switch ($controller) {
 
-    $ctrl = new UsuariosController();
+    // -------------------------------------------------------
+    // AUTH
+    // -------------------------------------------------------
+    case 'auth':
+        $authController = new AuthController();
 
-    switch ($action) {
-        case 'listar':   $ctrl->listar();      break;
-        case 'buscar':   $ctrl->buscarPorId(); break;
-        case 'criar':    $ctrl->criar();       break;
-        case 'atualizar':$ctrl->atualizar();   break;
-        case 'excluir':  $ctrl->excluir();     break;
-        default: echo json_encode(['erro' => 'Acao de usuarios nao encontrada.']); break;
-    }
+        switch ($action) {
+            case 'login':
+                $authController->exibirLogin();
+                break;
 
-// -------------------------------------------------------
-// PESSOAS
-// -------------------------------------------------------
-} elseif ($controller === 'pessoas') {
+            case 'entrar':
+                $authController->entrar();
+                break;
 
-    $ctrl = new PessoasController();
+            case 'dashboard':
+                $authController->dashboard();
+                break;
 
-    switch ($action) {
-        case 'listar':   $ctrl->listar();      break;
-        case 'buscar':   $ctrl->buscarPorId(); break;
-        case 'criar':    $ctrl->criar();       break;
-        case 'atualizar':$ctrl->atualizar();   break;
-        case 'excluir':  $ctrl->excluir();     break;
-        default: echo json_encode(['erro' => 'Acao de pessoas nao encontrada.']); break;
-    }
+            case 'logout':
+                $authController->logout();
+                break;
 
-// -------------------------------------------------------
-// TIPOS DE ATENDIMENTOS
-// -------------------------------------------------------
-} elseif ($controller === 'tipos') {
+            default:
+                http_response_code(404);
+                echo 'Acao de autenticacao nao encontrada.';
+        }
+        break;
 
-    $ctrl = new TiposAtendimentosController();
+    // -------------------------------------------------------
+    // USUARIOS
+    // -------------------------------------------------------
+    case 'usuarios':
+        exigirAutenticacao();
+        $usuariosController = new UsuariosController();
 
-    switch ($action) {
-        case 'listar':   $ctrl->listar();      break;
-        case 'buscar':   $ctrl->buscarPorId(); break;
-        case 'criar':    $ctrl->criar();       break;
-        case 'atualizar':$ctrl->atualizar();   break;
-        case 'excluir':  $ctrl->excluir();     break;
-        default: echo json_encode(['erro' => 'Acao de tipos nao encontrada.']); break;
-    }
+        switch ($action) {
+            case 'listar':    $usuariosController->listar();      break;
+            case 'buscar':    $usuariosController->buscarPorId(); break;
+            case 'criar':     $usuariosController->criar();       break;
+            case 'atualizar': $usuariosController->atualizar();   break;
+            case 'excluir':   $usuariosController->excluir();     break;
+            default:
+                http_response_code(404);
+                echo json_encode(['erro' => 'Acao de usuarios nao encontrada.']);
+        }
+        break;
 
-// -------------------------------------------------------
-// ATENDIMENTOS
-// -------------------------------------------------------
-} elseif ($controller === 'atendimentos') {
+    // -------------------------------------------------------
+    // PESSOAS
+    // -------------------------------------------------------
+    case 'pessoas':
+        exigirAutenticacao();
+        $ctrl = new PessoasController();
 
-    $ctrl = new AtendimentosController();
+        switch ($action) {
+            case 'listar':    $ctrl->listar();      break;
+            case 'buscar':    $ctrl->buscarPorId(); break;
+            case 'criar':     $ctrl->criar();       break;
+            case 'atualizar': $ctrl->atualizar();   break;
+            case 'excluir':   $ctrl->excluir();     break;
+            default:
+                http_response_code(404);
+                echo json_encode(['erro' => 'Acao de pessoas nao encontrada.']);
+        }
+        break;
 
-    switch ($action) {
-        case 'listar':   $ctrl->listar();      break;
-        case 'buscar':   $ctrl->buscarPorId(); break;
-        case 'criar':    $ctrl->criar();       break;
-        case 'atualizar':$ctrl->atualizar();   break;
-        default: echo json_encode(['erro' => 'Acao de atendimentos nao encontrada.']); break;
-    }
+    // -------------------------------------------------------
+    // TIPOS DE ATENDIMENTOS
+    // -------------------------------------------------------
+    case 'tipos':
+        exigirAutenticacao();
+        $ctrl = new TiposAtendimentosController();
 
-// -------------------------------------------------------
-// HOME
-// -------------------------------------------------------
-} else {
-    echo '<h1>AtendeLab</h1>';
-    echo '<p>Rotas disponiveis:</p>';
-    echo '<ul>';
-    echo '<li>?controller=usuarios&action=listar</li>';
-    echo '<li>?controller=pessoas&action=listar</li>';
-    echo '<li>?controller=tipos&action=listar</li>';
-    echo '<li>?controller=atendimentos&action=listar</li>';
-    echo '</ul>';
+        switch ($action) {
+            case 'listar':    $ctrl->listar();      break;
+            case 'buscar':    $ctrl->buscarPorId(); break;
+            case 'criar':     $ctrl->criar();       break;
+            case 'atualizar': $ctrl->atualizar();   break;
+            case 'excluir':   $ctrl->excluir();     break;
+            default:
+                http_response_code(404);
+                echo json_encode(['erro' => 'Acao de tipos nao encontrada.']);
+        }
+        break;
+
+    // -------------------------------------------------------
+    // ATENDIMENTOS
+    // -------------------------------------------------------
+    case 'atendimentos':
+        exigirAutenticacao();
+        $ctrl = new AtendimentosController();
+
+        switch ($action) {
+            case 'listar':    $ctrl->listar();      break;
+            case 'buscar':    $ctrl->buscarPorId(); break;
+            case 'criar':     $ctrl->criar();       break;
+            case 'atualizar': $ctrl->atualizar();   break;
+            default:
+                http_response_code(404);
+                echo json_encode(['erro' => 'Acao de atendimentos nao encontrada.']);
+        }
+        break;
+
+    // -------------------------------------------------------
+    // CONTROLLER NÃO ENCONTRADO
+    // -------------------------------------------------------
+    default:
+        http_response_code(404);
+        echo 'Controller nao encontrado.';
 }

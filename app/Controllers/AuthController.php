@@ -1,11 +1,5 @@
 <?php
 
-// Importa a conexão com o banco de dados.
-require_once __DIR__ . '/../../config/database.php';
-
-// Importa funções auxiliares de autenticação e sessão.
-require_once __DIR__ . '/../Middleware/auth.php';
-
 class AuthController
 {
     // Armazena a conexão PDO.
@@ -13,10 +7,7 @@ class AuthController
 
     public function __construct()
     {
-        // Recupera a conexão criada em database.php.
-        global $pdo;
-
-        // Disponibiliza a conexão para os métodos da classe.
+        require_once __DIR__ . '/../../config/database.php';
         $this->pdo = $pdo;
     }
 

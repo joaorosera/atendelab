@@ -1,125 +1,160 @@
 <?php
 
 require_once __DIR__ . '/app/Middleware/auth.php';
-require_once __DIR__ . '/app/Controllers/AuthController.php';
-require_once __DIR__ . '/app/Controllers/UsuariosController.php';
-require_once __DIR__ . '/app/Controllers/PessoasController.php';
-require_once __DIR__ . '/app/Controllers/TiposAtendimentosController.php';
-require_once __DIR__ . '/app/Controllers/AtendimentosController.php';
+
+function responderRotaNaoEncontrada(string $mensagem = 'Rota não encontrada.'): void
+{
+    http_response_code(404);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(['erro' => $mensagem], JSON_UNESCAPED_UNICODE);
+}
 
 $controller = $_GET['controller'] ?? 'auth';
 $action     = $_GET['action']     ?? 'login';
 
+// Autenticação: login, entrar, dashboard, logout
+if ($controller === 'auth') {
+    require_once __DIR__ . '/app/Controllers/AuthController.php';
+    $auth = new AuthController();
+
+    switch ($action) {
+        case 'login':
+            $auth->exibirLogin();
+            break;
+        case 'entrar':
+            $auth->entrar();
+            break;
+        case 'dashboard':
+            exigirAutenticacao();
+            $auth->dashboard();
+            break;
+        case 'logout':
+            $auth->logout();
+            break;
+        default:
+            responderRotaNaoEncontrada('Ação de autenticação não encontrada.');
+    }
+    exit;
+}
+
+// Todas as rotas abaixo exigem sessão ativa
+exigirAutenticacao();
+
 switch ($controller) {
 
-    // -------------------------------------------------------
-    // AUTH — rotas públicas (sem exigirAutenticacao)
-    // -------------------------------------------------------
-    case 'auth':
-        $authController = new AuthController();
-
+    case 'frontend':
+        require_once __DIR__ . '/app/Controllers/FrontendController.php';
+        $frontendController = new FrontendController();
         switch ($action) {
-            case 'login':
-                $authController->exibirLogin();
+            case 'pessoas':
+                $frontendController->pessoas();
                 break;
-
-            case 'entrar':
-                $authController->entrar();
+            case 'tipos':
+                $frontendController->tipos();
                 break;
-
-            case 'dashboard':
-                $authController->dashboard();
+            case 'atendimentos':
+                $frontendController->atendimentos();
                 break;
-
-            case 'logout':
-                $authController->logout();
-                break;
-
             default:
-                http_response_code(404);
-                echo 'Acao de autenticacao nao encontrada.';
+                responderRotaNaoEncontrada('Página não encontrada.');
         }
         break;
 
-    // -------------------------------------------------------
-    // USUARIOS
-    // -------------------------------------------------------
-    case 'usuarios':
-        exigirAutenticacao();
-        $usuariosController = new UsuariosController();
-
+    case 'dashboard':
+        require_once __DIR__ . '/app/Controllers/DashboardController.php';
+        $dashboardController = new DashboardController();
         switch ($action) {
-            case 'listar':    $usuariosController->listar();      break;
-            case 'buscar':    $usuariosController->buscarPorId(); break;
-            case 'criar':     $usuariosController->criar();       break;
-            case 'atualizar': $usuariosController->atualizar();   break;
-            case 'excluir':   $usuariosController->excluir();     break;
+            case 'resumo':
+                $dashboardController->resumo();
+                break;
             default:
-                http_response_code(404);
-                echo json_encode(['erro' => 'Acao de usuarios nao encontrada.']);
+                responderRotaNaoEncontrada('Ação de dashboard não encontrada.');
         }
         break;
 
-    // -------------------------------------------------------
-    // PESSOAS
-    // -------------------------------------------------------
     case 'pessoas':
-        exigirAutenticacao();
-        $ctrl = new PessoasController();
-
+        require_once __DIR__ . '/app/Controllers/PessoasController.php';
+        $pessoasController = new PessoasController();
         switch ($action) {
-            case 'listar':    $ctrl->listar();      break;
-            case 'buscar':    $ctrl->buscarPorId(); break;
-            case 'criar':     $ctrl->criar();       break;
-            case 'atualizar': $ctrl->atualizar();   break;
-            case 'inativar':  $ctrl->inativar();    break;
+            case 'listar':
+                $pessoasController->listar();
+                break;
+            case 'buscar':
+            case 'buscarPorId':
+                $pessoasController->buscar();
+                break;
+            case 'criar':
+                $pessoasController->criar();
+                break;
+            case 'atualizar':
+                $pessoasController->atualizar();
+                break;
+            case 'inativar':
+                $pessoasController->inativar();
+                break;
             default:
-                http_response_code(404);
-                echo json_encode(['erro' => 'Acao de pessoas nao encontrada.']);
+                responderRotaNaoEncontrada('Ação de pessoas não encontrada.');
         }
         break;
 
-    // -------------------------------------------------------
-    // TIPOS DE ATENDIMENTOS
-    // -------------------------------------------------------
     case 'tipos':
-        exigirAutenticacao();
-        $ctrl = new TiposAtendimentosController();
-
+        require_once __DIR__ . '/app/Controllers/TiposAtendimentosController.php';
+        $tiposController = new TiposAtendimentosController();
         switch ($action) {
-            case 'listar':    $ctrl->listar();      break;
-            case 'buscar':    $ctrl->buscarPorId(); break;
-            case 'criar':     $ctrl->criar();       break;
-            case 'atualizar': $ctrl->atualizar();   break;
-            case 'inativar':  $ctrl->inativar();    break;
+            case 'listar':
+                $tiposController->listar();
+                break;
+            case 'buscar':
+            case 'buscarPorId':
+                $tiposController->buscar();
+                break;
+            case 'criar':
+                $tiposController->criar();
+                break;
+            case 'atualizar':
+                $tiposController->atualizar();
+                break;
+            case 'inativar':
+                $tiposController->inativar();
+                break;
             default:
-                http_response_code(404);
-                echo json_encode(['erro' => 'Acao de tipos nao encontrada.']);
+                responderRotaNaoEncontrada('Ação de tipos de atendimento não encontrada.');
         }
         break;
 
-    // -------------------------------------------------------
-    // ATENDIMENTOS
-    // -------------------------------------------------------
     case 'atendimentos':
-        exigirAutenticacao();
-        $ctrl = new AtendimentosController();
-
+        require_once __DIR__ . '/app/Controllers/AtendimentosController.php';
+        $atendimentosController = new AtendimentosController();
         switch ($action) {
-            case 'listar':        $ctrl->listar();        break;
-            case 'buscar':        $ctrl->buscarPorId();   break;
-            case 'criar':         $ctrl->criar();         break;
-            case 'alterarStatus': $ctrl->alterarStatus(); break;
+            case 'listar':
+                $atendimentosController->listar();
+                break;
+            case 'visualizar':
+                $atendimentosController->buscar();
+                break;
+            case 'criar':
+                $atendimentosController->criar();
+                break;
+            case 'alterarStatus':
+            case 'atualizarStatus':
+                $atendimentosController->alterarStatus();
+                break;
             default:
-                http_response_code(404);
-                echo json_encode(['erro' => 'Acao de atendimentos nao encontrada.']);
+                responderRotaNaoEncontrada('Ação de atendimentos não encontrada.');
         }
         break;
 
-    // -------------------------------------------------------
-    // CONTROLLER NÃO ENCONTRADO
-    // -------------------------------------------------------
+    case 'usuarios':
+        require_once __DIR__ . '/app/Controllers/UsuariosController.php';
+        $obj = new UsuariosController();
+        if (!method_exists($obj, $action)) {
+            responderRotaNaoEncontrada('Ação de usuários não encontrada.');
+            break;
+        }
+        $obj->$action();
+        break;
+
     default:
         http_response_code(404);
-        echo 'Controller nao encontrado.';
+        exit('Controller não encontrado.');
 }

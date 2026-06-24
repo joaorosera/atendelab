@@ -1,4 +1,5 @@
 <?php
+
 class PessoasController
 {
     private PDO $pdo;
@@ -9,229 +10,163 @@ class PessoasController
         $this->pdo = $pdo;
     }
 
-    // -------------------------------------------------------
+    // Método auxiliar para retornar JSON com status HTTP
+    private function json(array $dados, int $status = 200): void
+    {
+        http_response_code($status);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode($dados, JSON_UNESCAPED_UNICODE);
+    }
+
     // LISTAR
-    // -------------------------------------------------------
     public function listar(): void
     {
-        header('Content-Type: application/json; charset=utf-8');
-
         $sql = 'SELECT id, nome, documento, telefone, email,
-                       curso, periodo, status, observacoes, criado_em
+                       curso, periodo, status, observacoes
                 FROM pessoas
                 ORDER BY nome';
 
-        $stmt   = $this->pdo->query($sql);
-        $pessoas = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        echo json_encode($pessoas, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        $this->json($this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC));
     }
 
-    // -------------------------------------------------------
     // BUSCAR POR ID
-    // -------------------------------------------------------
-    public function buscarPorId(): void
+    public function buscar(): void
     {
-        header('Content-Type: application/json; charset=utf-8');
-
         $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 
         if (!$id) {
-            http_response_code(400);
-            echo json_encode(['erro' => 'ID invalido.']);
+            $this->json(['erro' => 'ID invalido.'], 400);
             return;
         }
 
-        $sql = 'SELECT id, nome, documento, telefone, email,
-                       curso, periodo, status, observacoes, criado_em
-                FROM pessoas
-                WHERE id = :id';
-
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
-        $stmt->execute();
-
+        $stmt = $this->pdo->prepare(
+            'SELECT id, nome, documento, telefone, email,
+                    curso, periodo, status, observacoes
+             FROM pessoas WHERE id = :id'
+        );
+        $stmt->execute(['id' => $id]);
         $pessoa = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$pessoa) {
-            http_response_code(404);
-            echo json_encode(['erro' => 'Pessoa nao encontrada.']);
+            $this->json(['erro' => 'Pessoa nao encontrada.'], 404);
             return;
         }
 
-        echo json_encode($pessoa, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        $this->json($pessoa);
     }
 
-    // -------------------------------------------------------
     // CRIAR
-    // Body (form-encode): nome, documento, email, telefone,
-    //                     curso, periodo, status, observacoes
-    // -------------------------------------------------------
     public function criar(): void
     {
-        header('Content-Type: application/json; charset=utf-8');
+        $nome       = trim($_POST['nome']        ?? '');
+        $documento  = trim($_POST['documento']   ?? '');
+        $telefone   = trim($_POST['telefone']    ?? '');
+        $email      = trim($_POST['email']       ?? '');
+        $curso      = trim($_POST['curso']       ?? '');
+        $periodo    = trim($_POST['periodo']     ?? '');
+        $status     =      $_POST['status']      ?? 'ativo';
+        $observacoes= trim($_POST['observacoes'] ?? '');
 
-        $nome        = trim($_POST['nome']        ?? '');
-        $documento   = trim($_POST['documento']   ?? '');
-        $email       = trim($_POST['email']       ?? '');
-        $telefone    = trim($_POST['telefone']    ?? '');
-        $curso       = trim($_POST['curso']       ?? '');
-        $periodo     = trim($_POST['periodo']     ?? '');
-        $status      =      $_POST['status']      ?? 'ativo';
-        $observacoes = trim($_POST['observacoes'] ?? '');
-
-        // Campos obrigatórios
         if ($nome === '' || $documento === '' || $email === '') {
-            http_response_code(422);
-            echo json_encode(['erro' => 'Nome, documento e e-mail sao obrigatorios.']);
+            $this->json(['erro' => 'Nome, documento e e-mail sao obrigatorios.'], 422);
             return;
         }
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            http_response_code(422);
-            echo json_encode(['erro' => 'E-mail invalido.']);
+            $this->json(['erro' => 'E-mail invalido.'], 422);
             return;
         }
 
         if (!in_array($status, ['ativo', 'inativo'], true)) {
-            http_response_code(422);
-            echo json_encode(['erro' => 'Status invalido.']);
+            $this->json(['erro' => 'Status invalido.'], 422);
             return;
         }
 
         try {
-            $sql = 'INSERT INTO pessoas
-                        (nome, documento, telefone, email, curso, periodo, status, observacoes)
-                    VALUES
-                        (:nome, :documento, :telefone, :email, :curso, :periodo, :status, :observacoes)';
+            $stmt = $this->pdo->prepare(
+                'INSERT INTO pessoas
+                 (nome, documento, telefone, email, curso, periodo, status, observacoes)
+                 VALUES
+                 (:nome, :documento, :telefone, :email, :curso, :periodo, :status, :observacoes)'
+            );
+            $stmt->execute(compact(
+                'nome', 'documento', 'telefone', 'email',
+                'curso', 'periodo', 'status', 'observacoes'
+            ));
 
-            $stmt = $this->pdo->prepare($sql);
-            $stmt->execute([
-                'nome'        => $nome,
-                'documento'   => $documento,
-                'telefone'    => $telefone    !== '' ? $telefone    : null,
-                'email'       => $email,
-                'curso'       => $curso       !== '' ? $curso       : null,
-                'periodo'     => $periodo     !== '' ? $periodo     : null,
-                'status'      => $status,
-                'observacoes' => $observacoes !== '' ? $observacoes : null,
-            ]);
-
-            http_response_code(201);
-            echo json_encode([
+            $this->json([
                 'mensagem' => 'Pessoa cadastrada com sucesso.',
-                'id'       => $this->pdo->lastInsertId(),
-            ], JSON_UNESCAPED_UNICODE);
+                'id'       => $this->pdo->lastInsertId()
+            ], 201);
 
         } catch (PDOException $e) {
-            // Código 23000 = violação de UNIQUE (documento duplicado)
-            if ($e->getCode() === '23000') {
-                http_response_code(409);
-                echo json_encode(['erro' => 'Documento ja cadastrado para outra pessoa.']);
-            } else {
-                http_response_code(500);
-                echo json_encode(['erro' => 'Erro ao cadastrar pessoa.']);
-            }
+            $this->json(['erro' => 'Nao foi possivel cadastrar a pessoa.'], 400);
         }
     }
 
-    // -------------------------------------------------------
     // ATUALIZAR
-    // Body (form-encode): id, nome, documento, email, telefone,
-    //                     curso, periodo, status, observacoes
-    // -------------------------------------------------------
     public function atualizar(): void
     {
-        header('Content-Type: application/json; charset=utf-8');
-
-        $id          = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
-        $nome        = trim($_POST['nome']        ?? '');
-        $documento   = trim($_POST['documento']   ?? '');
-        $email       = trim($_POST['email']       ?? '');
-        $telefone    = trim($_POST['telefone']    ?? '');
-        $curso       = trim($_POST['curso']       ?? '');
-        $periodo     = trim($_POST['periodo']     ?? '');
-        $status      =      $_POST['status']      ?? 'ativo';
-        $observacoes = trim($_POST['observacoes'] ?? '');
+        $id         = filter_var($_POST['id'] ?? null, FILTER_VALIDATE_INT);
+        $nome       = trim($_POST['nome']        ?? '');
+        $documento  = trim($_POST['documento']   ?? '');
+        $telefone   = trim($_POST['telefone']    ?? '');
+        $email      = trim($_POST['email']       ?? '');
+        $curso      = trim($_POST['curso']       ?? '');
+        $periodo    = trim($_POST['periodo']     ?? '');
+        $status     =      $_POST['status']      ?? 'ativo';
+        $observacoes= trim($_POST['observacoes'] ?? '');
 
         if (!$id || $nome === '' || $documento === '' || $email === '') {
-            http_response_code(422);
-            echo json_encode(['erro' => 'Dados obrigatorios ausentes.']);
+            $this->json(['erro' => 'Dados obrigatorios ausentes.'], 422);
             return;
         }
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            http_response_code(422);
-            echo json_encode(['erro' => 'E-mail invalido.']);
+            $this->json(['erro' => 'E-mail invalido.'], 422);
             return;
         }
 
         if (!in_array($status, ['ativo', 'inativo'], true)) {
-            http_response_code(422);
-            echo json_encode(['erro' => 'Status invalido.']);
+            $this->json(['erro' => 'Status invalido.'], 422);
             return;
         }
 
         try {
-            $sql = 'UPDATE pessoas
-                    SET nome        = :nome,
-                        documento   = :documento,
-                        telefone    = :telefone,
-                        email       = :email,
-                        curso       = :curso,
-                        periodo     = :periodo,
-                        status      = :status,
-                        observacoes = :observacoes
-                    WHERE id = :id';
+            $stmt = $this->pdo->prepare(
+                'UPDATE pessoas
+                 SET nome = :nome, documento = :documento, telefone = :telefone,
+                     email = :email, curso = :curso, periodo = :periodo,
+                     status = :status, observacoes = :observacoes
+                 WHERE id = :id'
+            );
+            $stmt->execute(compact(
+                'id', 'nome', 'documento', 'telefone', 'email',
+                'curso', 'periodo', 'status', 'observacoes'
+            ));
 
-            $stmt = $this->pdo->prepare($sql);
-            $stmt->execute([
-                'id'          => $id,
-                'nome'        => $nome,
-                'documento'   => $documento,
-                'telefone'    => $telefone    !== '' ? $telefone    : null,
-                'email'       => $email,
-                'curso'       => $curso       !== '' ? $curso       : null,
-                'periodo'     => $periodo     !== '' ? $periodo     : null,
-                'status'      => $status,
-                'observacoes' => $observacoes !== '' ? $observacoes : null,
-            ]);
-
-            echo json_encode(['mensagem' => 'Pessoa atualizada com sucesso.'], JSON_UNESCAPED_UNICODE);
+            $this->json(['mensagem' => 'Pessoa atualizada com sucesso.']);
 
         } catch (PDOException $e) {
-            if ($e->getCode() === '23000') {
-                http_response_code(409);
-                echo json_encode(['erro' => 'Documento ja cadastrado para outra pessoa.']);
-            } else {
-                http_response_code(500);
-                echo json_encode(['erro' => 'Erro ao atualizar pessoa.']);
-            }
+            $this->json(['erro' => 'Nao foi possivel atualizar a pessoa.'], 400);
         }
     }
 
-    // -------------------------------------------------------
-    // INATIVAR  (soft delete — não apaga o registro)
-    // Body (form-encode): id
-    // -------------------------------------------------------
+    // INATIVAR (não apaga fisicamente)
     public function inativar(): void
     {
-        header('Content-Type: application/json; charset=utf-8');
-
-        $id = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
+        $id = filter_var($_POST['id'] ?? null, FILTER_VALIDATE_INT);
 
         if (!$id) {
-            http_response_code(422);
-            echo json_encode(['erro' => 'ID invalido.']);
+            $this->json(['erro' => 'ID invalido.'], 422);
             return;
         }
 
         $stmt = $this->pdo->prepare(
             "UPDATE pessoas SET status = 'inativo' WHERE id = :id"
         );
-        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
-        $stmt->execute();
+        $stmt->execute(['id' => $id]);
 
-        echo json_encode(['mensagem' => 'Pessoa inativada com sucesso.'], JSON_UNESCAPED_UNICODE);
+        $this->json(['mensagem' => 'Pessoa inativada com sucesso.']);
     }
 }

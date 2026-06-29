@@ -10,30 +10,22 @@ class DashboardController
         $this->pdo = $pdo;
     }
 
-    private function json(array $dados, int $status = 200): void
+    private function json($dados, $status = 200)
     {
         http_response_code($status);
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode($dados, JSON_UNESCAPED_UNICODE);
     }
 
-    public function resumo(): void
+    // numeros pro dashboard, nada muito elaborado
+    public function resumo()
     {
-        $totalPessoas = (int) $this->pdo
-            ->query('SELECT COUNT(*) FROM pessoas')
-            ->fetchColumn();
-
-        $totalTipos = (int) $this->pdo
-            ->query('SELECT COUNT(*) FROM tipos_atendimentos')
-            ->fetchColumn();
-
-        $totalAtendimentos = (int) $this->pdo
-            ->query('SELECT COUNT(*) FROM atendimentos')
-            ->fetchColumn();
+        $totalPessoas = (int) $this->pdo->query('SELECT COUNT(*) FROM pessoas')->fetchColumn();
+        $totalTipos = (int) $this->pdo->query('SELECT COUNT(*) FROM tipos_atendimentos')->fetchColumn();
+        $totalAtendimentos = (int) $this->pdo->query('SELECT COUNT(*) FROM atendimentos')->fetchColumn();
 
         $recentes = $this->pdo->query(
-            'SELECT a.id, p.nome AS pessoa_nome, t.nome AS tipo_nome,
-                    a.status, a.data_atendimento
+            'SELECT a.id, p.nome AS pessoa_nome, t.nome AS tipo_nome, a.status, a.data_atendimento
              FROM atendimentos a
              INNER JOIN pessoas p ON p.id = a.pessoa_id
              INNER JOIN tipos_atendimentos t ON t.id = a.tipo_atendimento_id
@@ -43,8 +35,8 @@ class DashboardController
 
         $this->json([
             'indicadores' => [
-                'total_pessoas'      => $totalPessoas,
-                'total_tipos'        => $totalTipos,
+                'total_pessoas' => $totalPessoas,
+                'total_tipos' => $totalTipos,
                 'total_atendimentos' => $totalAtendimentos,
             ],
             'atendimentos_recentes' => $recentes,

@@ -2,7 +2,7 @@
 
 require_once __DIR__ . '/app/Middleware/auth.php';
 
-function responderRotaNaoEncontrada(string $mensagem = 'Rota não encontrada.'): void
+function rotaNaoEncontrada($mensagem = 'Rota não encontrada.')
 {
     http_response_code(404);
     header('Content-Type: application/json; charset=utf-8');
@@ -10,9 +10,9 @@ function responderRotaNaoEncontrada(string $mensagem = 'Rota não encontrada.'):
 }
 
 $controller = $_GET['controller'] ?? 'auth';
-$action     = $_GET['action']     ?? 'login';
+$action = $_GET['action'] ?? 'login';
 
-// Autenticação: login, entrar, dashboard, logout
+// rotas de login/logout ficam fora do bloco que exige autenticacao, claro
 if ($controller === 'auth') {
     require_once __DIR__ . '/app/Controllers/AuthController.php';
     $auth = new AuthController();
@@ -32,12 +32,12 @@ if ($controller === 'auth') {
             $auth->logout();
             break;
         default:
-            responderRotaNaoEncontrada('Ação de autenticação não encontrada.');
+            rotaNaoEncontrada('Ação de autenticação não encontrada.');
     }
     exit;
 }
 
-// Todas as rotas abaixo exigem sessão ativa
+// daqui pra baixo precisa estar logado
 exigirAutenticacao();
 
 switch ($controller) {
@@ -56,7 +56,7 @@ switch ($controller) {
                 $frontendController->atendimentos();
                 break;
             default:
-                responderRotaNaoEncontrada('Página não encontrada.');
+                rotaNaoEncontrada('Página não encontrada.');
         }
         break;
 
@@ -68,7 +68,7 @@ switch ($controller) {
                 $dashboardController->resumo();
                 break;
             default:
-                responderRotaNaoEncontrada('Ação de dashboard não encontrada.');
+                rotaNaoEncontrada('Ação de dashboard não encontrada.');
         }
         break;
 
@@ -93,7 +93,7 @@ switch ($controller) {
                 $pessoasController->inativar();
                 break;
             default:
-                responderRotaNaoEncontrada('Ação de pessoas não encontrada.');
+                rotaNaoEncontrada('Ação de pessoas não encontrada.');
         }
         break;
 
@@ -118,7 +118,7 @@ switch ($controller) {
                 $tiposController->inativar();
                 break;
             default:
-                responderRotaNaoEncontrada('Ação de tipos de atendimento não encontrada.');
+                rotaNaoEncontrada('Ação de tipos de atendimento não encontrada.');
         }
         break;
 
@@ -140,18 +140,18 @@ switch ($controller) {
                 $atendimentosController->alterarStatus();
                 break;
             default:
-                responderRotaNaoEncontrada('Ação de atendimentos não encontrada.');
+                rotaNaoEncontrada('Ação de atendimentos não encontrada.');
         }
         break;
 
     case 'usuarios':
         require_once __DIR__ . '/app/Controllers/UsuariosController.php';
-        $obj = new UsuariosController();
-        if (!method_exists($obj, $action)) {
-            responderRotaNaoEncontrada('Ação de usuários não encontrada.');
+        $usuariosController = new UsuariosController();
+        if (!method_exists($usuariosController, $action)) {
+            rotaNaoEncontrada('Ação de usuários não encontrada.');
             break;
         }
-        $obj->$action();
+        $usuariosController->$action();
         break;
 
     default:

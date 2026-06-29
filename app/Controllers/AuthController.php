@@ -1,26 +1,19 @@
 <?php
 
-// Importa a conexão com o banco de dados.
 require_once __DIR__ . '/../../config/database.php';
-
-// Importa funções auxiliares de autenticação e sessão.
 require_once __DIR__ . '/../Middleware/auth.php';
 
 class AuthController
 {
-    // Armazena a conexão PDO.
     private PDO $pdo;
 
     public function __construct()
     {
-        // Importa o arquivo que inicializa o objeto $pdo.
         require __DIR__ . '/../../config/database.php';
-
-        // Disponibiliza a conexão para os métodos da classe.
         $this->pdo = $pdo;
     }
 
-    public function exibirLogin(): void
+    public function exibirLogin()
     {
         if (usuarioAutenticado()) {
             header('Location: ?controller=auth&action=dashboard');
@@ -28,14 +21,13 @@ class AuthController
         }
 
         $erroLogin = $_SESSION['erro_login'] ?? null;
-        $mensagem  = $_SESSION['mensagem']   ?? null;
-
+        $mensagem = $_SESSION['mensagem'] ?? null;
         unset($_SESSION['erro_login'], $_SESSION['mensagem']);
 
-        require __DIR__ . '/../Views/auth/login.php';
+        require __DIR__ . '/../Views/Auth/login.php';
     }
 
-    public function entrar(): void
+    public function entrar()
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             header('Location: ?controller=auth&action=login');
@@ -47,39 +39,24 @@ class AuthController
 
         if ($email === '' || $senha === '') {
             $_SESSION['erro_login'] = 'Informe o e-mail e a senha.';
-
             header('Location: ?controller=auth&action=login');
             exit;
         }
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $_SESSION['erro_login'] = 'Informe um e-mail valido.';
-
             header('Location: ?controller=auth&action=login');
             exit;
         }
 
-        $sql = 'SELECT id, nome, email, senha, perfil, status
-                FROM usuarios
-                WHERE email = :email
-                LIMIT 1';
-
-        $stmt = $this->pdo->prepare($sql);
-
+        $stmt = $this->pdo->prepare('SELECT id, nome, email, senha, perfil, status FROM usuarios WHERE email = :email LIMIT 1');
         $stmt->bindValue(':email', $email);
-
         $stmt->execute();
-
         $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
-        
 
-        if (
-            !$usuario
-            || $usuario['status'] !== 'ativo'
-            || !password_verify($senha, $usuario['senha'])
-        ) {
+        // confere se achou o usuario, se ta ativo e se a senha bate com o hash
+        if (!$usuario || $usuario['status'] !== 'ativo' || !password_verify($senha, $usuario['senha'])) {
             $_SESSION['erro_login'] = 'E-mail ou senha invalidos.';
-
             header('Location: ?controller=auth&action=login');
             exit;
         }
@@ -87,9 +64,9 @@ class AuthController
         session_regenerate_id(true);
 
         $_SESSION['usuario'] = [
-            'id'     => $usuario['id'],
-            'nome'   => $usuario['nome'],
-            'email'  => $usuario['email'],
+            'id' => $usuario['id'],
+            'nome' => $usuario['nome'],
+            'email' => $usuario['email'],
             'perfil' => $usuario['perfil'],
         ];
 
@@ -97,22 +74,18 @@ class AuthController
         exit;
     }
 
-    public function dashboard(): void
+    public function dashboard()
     {
         exigirAutenticacao();
-
         require __DIR__ . '/../Views/dashboard/index.php';
     }
 
-    public function logout(): void
+    public function logout()
     {
-        // Remove os dados armazenados na sessão.
         $_SESSION = [];
 
-        // Remove o cookie da sessão, caso esteja sendo utilizado.
         if (ini_get('session.use_cookies')) {
             $params = session_get_cookie_params();
-
             setcookie(
                 session_name(),
                 '',
@@ -124,16 +97,10 @@ class AuthController
             );
         }
 
-        // Encerra a sessão atual.
         session_destroy();
-
-        // Inicia nova sessão apenas para enviar a mensagem de retorno.
         session_start();
-
-        // Mensagem exibida após o logout.
         $_SESSION['mensagem'] = 'Sessao encerrada com sucesso.';
 
-        // Retorna para a tela de login.
         header('Location: ?controller=auth&action=login');
         exit;
     }

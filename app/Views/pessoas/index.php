@@ -6,7 +6,7 @@ require __DIR__ . '/../layouts/header.php';
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
     <div>
         <h1 class="h3 mb-1">Pessoas atendidas</h1>
-        <p class="text-secondary mb-0">Cadastro, edição e inativação sem excluir o histórico.</p>
+        <p class="text-secondary mb-0">Cadastro, edicao e inativacao sem excluir o historico.</p>
     </div>
     <button class="btn btn-success" type="button" onclick="novaPessoa()">Nova pessoa</button>
 </div>
@@ -40,11 +40,11 @@ require __DIR__ . '/../layouts/header.php';
                     <input class="form-control" name="curso">
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">Período</label>
+                    <label class="form-label">Periodo</label>
                     <input class="form-control" name="periodo">
                 </div>
                 <div class="col-12">
-                    <label class="form-label">Observações</label>
+                    <label class="form-label">Observacoes</label>
                     <textarea class="form-control" name="observacoes" rows="2"></textarea>
                 </div>
                 <div class="col-md-3">
@@ -72,9 +72,9 @@ require __DIR__ . '/../layouts/header.php';
                     <th>Documento</th>
                     <th>E-mail</th>
                     <th>Curso</th>
-                    <th>Período</th>
+                    <th>Periodo</th>
                     <th>Status</th>
-                    <th class="text-end">Ações</th>
+                    <th class="text-end">Acoes</th>
                 </tr>
             </thead>
             <tbody id="tabelaPessoas">
@@ -87,8 +87,8 @@ require __DIR__ . '/../layouts/header.php';
 </div>
 
 <script>
-    const formPessoa = document.getElementById('formPessoa');
-    const cardFormulario = document.getElementById('cardFormulario');
+    var formPessoa = document.getElementById('formPessoa');
+    var cardFormulario = document.getElementById('cardFormulario');
 
     function abrirFormulario() {
         cardFormulario.classList.remove('d-none');
@@ -109,15 +109,15 @@ require __DIR__ . '/../layouts/header.php';
 
     async function carregarPessoas() {
         try {
-            const dados = AtendeLabApi.toList(await AtendeLabApi.get('pessoas', 'listar'));
+            const lista = AtendeLabApi.toList(await AtendeLabApi.get('pessoas', 'listar'));
             const tbody = document.getElementById('tabelaPessoas');
 
-            if (!dados.length) {
+            if (!lista.length) {
                 tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4">Nenhuma pessoa cadastrada.</td></tr>';
                 return;
             }
 
-            tbody.innerHTML = dados.map(p => `<tr>
+            tbody.innerHTML = lista.map(p => `<tr>
                 <td>${AtendeLabApi.escape(p.nome)}</td>
                 <td>${AtendeLabApi.escape(p.documento)}</td>
                 <td>${AtendeLabApi.escape(p.email)}</td>
@@ -136,19 +136,19 @@ require __DIR__ . '/../layouts/header.php';
 
     async function editarPessoa(id) {
         try {
-            const p = AtendeLabApi.toObject(await AtendeLabApi.get('pessoas', 'buscar', { id }));
+            const p = AtendeLabApi.toObject(await AtendeLabApi.get('pessoas', 'buscar', { id: id }));
             novaPessoa();
             document.getElementById('tituloFormulario').textContent = 'Editar pessoa';
-            for (const [key, value] of Object.entries(p)) {
-                const field = formPessoa.elements.namedItem(key);
-                if (field) field.value = value ?? '';
+            for (const campo in p) {
+                const elemento = formPessoa.elements.namedItem(campo);
+                if (elemento) elemento.value = p[campo] ?? '';
             }
         } catch (error) {
             AtendeLabApi.showAlert('alerta', error.message, 'danger');
         }
     }
 
-    formPessoa.addEventListener('submit', async event => {
+    formPessoa.addEventListener('submit', async function (event) {
         event.preventDefault();
         const id = document.getElementById('pessoaId').value;
         try {
@@ -164,7 +164,7 @@ require __DIR__ . '/../layouts/header.php';
     async function inativarPessoa(id) {
         if (!confirm('Deseja inativar esta pessoa?')) return;
         try {
-            await AtendeLabApi.post('pessoas', 'inativar', { id });
+            await AtendeLabApi.post('pessoas', 'inativar', { id: id });
             AtendeLabApi.showAlert('alerta', 'Pessoa inativada com sucesso.');
             await carregarPessoas();
         } catch (error) {

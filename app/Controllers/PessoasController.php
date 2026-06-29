@@ -10,27 +10,23 @@ class PessoasController
         $this->pdo = $pdo;
     }
 
-    // Método auxiliar para retornar JSON com status HTTP
-    private function json(array $dados, int $status = 200): void
+    private function json($dados, $status = 200)
     {
         http_response_code($status);
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode($dados, JSON_UNESCAPED_UNICODE);
     }
 
-    // LISTAR
-    public function listar(): void
+    public function listar()
     {
-        $sql = 'SELECT id, nome, documento, telefone, email,
-                       curso, periodo, status, observacoes
+        $sql = 'SELECT id, nome, documento, telefone, email, curso, periodo, status, observacoes
                 FROM pessoas
                 ORDER BY nome';
 
         $this->json($this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC));
     }
 
-    // BUSCAR POR ID
-    public function buscar(): void
+    public function buscar()
     {
         $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 
@@ -39,11 +35,7 @@ class PessoasController
             return;
         }
 
-        $stmt = $this->pdo->prepare(
-            'SELECT id, nome, documento, telefone, email,
-                    curso, periodo, status, observacoes
-             FROM pessoas WHERE id = :id'
-        );
+        $stmt = $this->pdo->prepare('SELECT id, nome, documento, telefone, email, curso, periodo, status, observacoes FROM pessoas WHERE id = :id');
         $stmt->execute(['id' => $id]);
         $pessoa = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -55,17 +47,16 @@ class PessoasController
         $this->json($pessoa);
     }
 
-    // CRIAR
-    public function criar(): void
+    public function criar()
     {
-        $nome       = trim($_POST['nome']        ?? '');
-        $documento  = trim($_POST['documento']   ?? '');
-        $telefone   = trim($_POST['telefone']    ?? '');
-        $email      = trim($_POST['email']       ?? '');
-        $curso      = trim($_POST['curso']       ?? '');
-        $periodo    = trim($_POST['periodo']     ?? '');
-        $status     =      $_POST['status']      ?? 'ativo';
-        $observacoes= trim($_POST['observacoes'] ?? '');
+        $nome = trim($_POST['nome'] ?? '');
+        $documento = trim($_POST['documento'] ?? '');
+        $telefone = trim($_POST['telefone'] ?? '');
+        $email = trim($_POST['email'] ?? '');
+        $curso = trim($_POST['curso'] ?? '');
+        $periodo = trim($_POST['periodo'] ?? '');
+        $status = $_POST['status'] ?? 'ativo';
+        $observacoes = trim($_POST['observacoes'] ?? '');
 
         if ($nome === '' || $documento === '' || $email === '') {
             $this->json(['erro' => 'Nome, documento e e-mail sao obrigatorios.'], 422);
@@ -77,45 +68,39 @@ class PessoasController
             return;
         }
 
-        if (!in_array($status, ['ativo', 'inativo'], true)) {
+        if ($status != 'ativo' && $status != 'inativo') {
             $this->json(['erro' => 'Status invalido.'], 422);
             return;
         }
 
         try {
             $stmt = $this->pdo->prepare(
-                'INSERT INTO pessoas
-                 (nome, documento, telefone, email, curso, periodo, status, observacoes)
-                 VALUES
-                 (:nome, :documento, :telefone, :email, :curso, :periodo, :status, :observacoes)'
+                'INSERT INTO pessoas (nome, documento, telefone, email, curso, periodo, status, observacoes)
+                 VALUES (:nome, :documento, :telefone, :email, :curso, :periodo, :status, :observacoes)'
             );
-            $stmt->execute(compact(
-                'nome', 'documento', 'telefone', 'email',
-                'curso', 'periodo', 'status', 'observacoes'
-            ));
+            $stmt->execute(compact('nome', 'documento', 'telefone', 'email', 'curso', 'periodo', 'status', 'observacoes'));
 
             $this->json([
                 'mensagem' => 'Pessoa cadastrada com sucesso.',
-                'id'       => $this->pdo->lastInsertId()
+                'id' => $this->pdo->lastInsertId(),
             ], 201);
-
         } catch (PDOException $e) {
+            // provavelmente documento ou email duplicado (tem unique no banco)
             $this->json(['erro' => 'Nao foi possivel cadastrar a pessoa.'], 400);
         }
     }
 
-    // ATUALIZAR
-    public function atualizar(): void
+    public function atualizar()
     {
-        $id         = filter_var($_POST['id'] ?? null, FILTER_VALIDATE_INT);
-        $nome       = trim($_POST['nome']        ?? '');
-        $documento  = trim($_POST['documento']   ?? '');
-        $telefone   = trim($_POST['telefone']    ?? '');
-        $email      = trim($_POST['email']       ?? '');
-        $curso      = trim($_POST['curso']       ?? '');
-        $periodo    = trim($_POST['periodo']     ?? '');
-        $status     =      $_POST['status']      ?? 'ativo';
-        $observacoes= trim($_POST['observacoes'] ?? '');
+        $id = filter_var($_POST['id'] ?? null, FILTER_VALIDATE_INT);
+        $nome = trim($_POST['nome'] ?? '');
+        $documento = trim($_POST['documento'] ?? '');
+        $telefone = trim($_POST['telefone'] ?? '');
+        $email = trim($_POST['email'] ?? '');
+        $curso = trim($_POST['curso'] ?? '');
+        $periodo = trim($_POST['periodo'] ?? '');
+        $status = $_POST['status'] ?? 'ativo';
+        $observacoes = trim($_POST['observacoes'] ?? '');
 
         if (!$id || $nome === '' || $documento === '' || $email === '') {
             $this->json(['erro' => 'Dados obrigatorios ausentes.'], 422);
@@ -127,7 +112,7 @@ class PessoasController
             return;
         }
 
-        if (!in_array($status, ['ativo', 'inativo'], true)) {
+        if ($status != 'ativo' && $status != 'inativo') {
             $this->json(['erro' => 'Status invalido.'], 422);
             return;
         }
@@ -140,20 +125,16 @@ class PessoasController
                      status = :status, observacoes = :observacoes
                  WHERE id = :id'
             );
-            $stmt->execute(compact(
-                'id', 'nome', 'documento', 'telefone', 'email',
-                'curso', 'periodo', 'status', 'observacoes'
-            ));
+            $stmt->execute(compact('id', 'nome', 'documento', 'telefone', 'email', 'curso', 'periodo', 'status', 'observacoes'));
 
             $this->json(['mensagem' => 'Pessoa atualizada com sucesso.']);
-
         } catch (PDOException $e) {
             $this->json(['erro' => 'Nao foi possivel atualizar a pessoa.'], 400);
         }
     }
 
-    // INATIVAR (não apaga fisicamente)
-    public function inativar(): void
+    // nao apaga do banco, só marca como inativo (assim mantem o historico de atendimentos)
+    public function inativar()
     {
         $id = filter_var($_POST['id'] ?? null, FILTER_VALIDATE_INT);
 
@@ -162,9 +143,7 @@ class PessoasController
             return;
         }
 
-        $stmt = $this->pdo->prepare(
-            "UPDATE pessoas SET status = 'inativo' WHERE id = :id"
-        );
+        $stmt = $this->pdo->prepare("UPDATE pessoas SET status = 'inativo' WHERE id = :id");
         $stmt->execute(['id' => $id]);
 
         $this->json(['mensagem' => 'Pessoa inativada com sucesso.']);

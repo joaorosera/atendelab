@@ -127,7 +127,7 @@ CREATE TABLE `usuarios` (
   `nome` varchar(100) NOT NULL,
   `email` varchar(100) NOT NULL,
   `senha` varchar(255) NOT NULL,
-  `perfil` enum('admin','atendente') DEFAULT 'atendente',
+  `perfil` enum('admin','aluno','atendente') DEFAULT 'atendente',
   `status` enum('ativo','inativo') DEFAULT 'ativo',
   `criado_em` timestamp NOT NULL DEFAULT current_timestamp(),
   `atualizado_em` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()

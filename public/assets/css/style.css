@@ -1,91 +1,12 @@
 :root {
     --atendelab-green: #198754;
     --atendelab-green-dark: #146c43;
-    --atendelab-green-light: #d1e7dd;
 }
 
 body {
     min-height: 100vh;
 }
 
-/* ── Login ── */
-.login-wrapper {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-}
-
-.login-sidebar {
-    background: var(--atendelab-green);
-    min-height: 220px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding: 2.5rem 2rem;
-    color: #fff;
-}
-
-.login-sidebar .al-logo {
-    width: 56px;
-    height: 56px;
-    background: rgba(255,255,255,0.18);
-    border-radius: 14px;
-    display: grid;
-    place-items: center;
-    font-size: 1.25rem;
-    font-weight: 800;
-    letter-spacing: .04em;
-    margin-bottom: 1.25rem;
-}
-
-.login-sidebar h1 {
-    font-size: 1.75rem;
-    font-weight: 700;
-    margin-bottom: .35rem;
-}
-
-.login-sidebar p {
-    opacity: .85;
-    font-size: .93rem;
-    margin-bottom: 0;
-}
-
-.login-sidebar .login-credits {
-    margin-top: auto;
-    padding-top: 2rem;
-    font-size: .78rem;
-    opacity: .7;
-}
-
-.login-form-area {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 2.5rem 1.25rem;
-    background: #f8f9fa;
-}
-
-.login-form-box {
-    width: min(100%, 400px);
-}
-
-.login-form-box .form-control:focus {
-    border-color: var(--atendelab-green);
-    box-shadow: 0 0 0 .2rem rgba(25, 135, 84, .2);
-}
-
-.login-form-box .btn-success {
-    background: var(--atendelab-green);
-    border-color: var(--atendelab-green);
-}
-
-.login-form-box .btn-success:hover {
-    background: var(--atendelab-green-dark);
-    border-color: var(--atendelab-green-dark);
-}
-
-/* ── Geral ── */
 .brand-mark {
     width: 58px;
     height: 58px;
@@ -108,20 +29,4 @@ body {
 
 textarea {
     resize: vertical;
-}
-
-@media (min-width: 768px) {
-    .login-wrapper {
-        flex-direction: row;
-    }
-
-    .login-sidebar {
-        width: 38%;
-        min-height: 100vh;
-        padding: 3rem 2.5rem;
-    }
-
-    .login-form-area {
-        width: 62%;
-    }
 }

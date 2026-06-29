@@ -6,7 +6,7 @@ require __DIR__ . '/../layouts/header.php';
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
     <div>
         <h1 class="h3 mb-1">Tipos de atendimento</h1>
-        <p class="text-secondary mb-0">Categorias utilizadas nos registros de atendimento.</p>
+        <p class="text-secondary mb-0">Categorias usadas nos registros de atendimento.</p>
     </div>
     <button class="btn btn-success" type="button" onclick="novoTipo()">Novo tipo</button>
 </div>
@@ -31,7 +31,7 @@ require __DIR__ . '/../layouts/header.php';
                     </select>
                 </div>
                 <div class="col-12">
-                    <label class="form-label">Descrição</label>
+                    <label class="form-label">Descricao</label>
                     <textarea class="form-control" name="descricao" rows="2"></textarea>
                 </div>
             </div>
@@ -49,9 +49,9 @@ require __DIR__ . '/../layouts/header.php';
             <thead class="table-light">
                 <tr>
                     <th>Nome</th>
-                    <th>Descrição</th>
+                    <th>Descricao</th>
                     <th>Status</th>
-                    <th class="text-end">Ações</th>
+                    <th class="text-end">Acoes</th>
                 </tr>
             </thead>
             <tbody id="tabelaTipos">
@@ -64,11 +64,11 @@ require __DIR__ . '/../layouts/header.php';
 </div>
 
 <script>
-    const formTipo       = document.getElementById('formTipo');
-    const cardFormulario = document.getElementById('cardFormulario');
-    const tabelaTipos    = document.getElementById('tabelaTipos');
-    const campoTipoId    = document.getElementById('tipoId');
-    const tituloFormulario = document.getElementById('tituloFormulario');
+    var formTipo = document.getElementById('formTipo');
+    var cardFormulario = document.getElementById('cardFormulario');
+    var tabelaTipos = document.getElementById('tabelaTipos');
+    var campoTipoId = document.getElementById('tipoId');
+    var tituloFormulario = document.getElementById('tituloFormulario');
 
     function abrirFormulario() {
         cardFormulario.classList.remove('d-none');
@@ -93,11 +93,11 @@ require __DIR__ . '/../layouts/header.php';
             const tipos = AtendeLabApi.toList(resposta);
 
             if (tipos.length === 0) {
-                tabelaTipos.innerHTML = `<tr><td colspan="4" class="text-center py-4">Nenhum tipo cadastrado.</td></tr>`;
+                tabelaTipos.innerHTML = '<tr><td colspan="4" class="text-center py-4">Nenhum tipo cadastrado.</td></tr>';
                 return;
             }
 
-            tabelaTipos.innerHTML = tipos.map(tipo => {
+            tabelaTipos.innerHTML = tipos.map(function (tipo) {
                 const classeStatus = tipo.status === 'ativo' ? 'text-bg-success' : 'text-bg-secondary';
                 return `<tr>
                     <td>${AtendeLabApi.escape(tipo.nome)}</td>
@@ -116,20 +116,20 @@ require __DIR__ . '/../layouts/header.php';
 
     async function editarTipo(id) {
         try {
-            const resposta = await AtendeLabApi.get('tipos', 'buscar', { id });
+            const resposta = await AtendeLabApi.get('tipos', 'buscar', { id: id });
             const tipo = AtendeLabApi.toObject(resposta);
             novoTipo();
             tituloFormulario.textContent = 'Editar tipo';
-            for (const [nomeCampo, valorCampo] of Object.entries(tipo)) {
+            for (const nomeCampo in tipo) {
                 const campo = formTipo.elements.namedItem(nomeCampo);
-                if (campo) campo.value = valorCampo ?? '';
+                if (campo) campo.value = tipo[nomeCampo] ?? '';
             }
         } catch (error) {
             AtendeLabApi.showAlert('alerta', error.message, 'danger');
         }
     }
 
-    formTipo.addEventListener('submit', async event => {
+    formTipo.addEventListener('submit', async function (event) {
         event.preventDefault();
         const id = campoTipoId.value;
         const acao = id ? 'atualizar' : 'criar';
@@ -147,7 +147,7 @@ require __DIR__ . '/../layouts/header.php';
     async function inativarTipo(id) {
         if (!confirm('Deseja realmente inativar este tipo?')) return;
         try {
-            await AtendeLabApi.post('tipos', 'inativar', { id });
+            await AtendeLabApi.post('tipos', 'inativar', { id: id });
             AtendeLabApi.showAlert('alerta', 'Tipo inativado com sucesso.', 'success');
             await carregarTipos();
         } catch (error) {

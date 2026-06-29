@@ -6,7 +6,7 @@ require __DIR__ . '/../layouts/header.php';
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
     <div>
         <h1 class="h3 mb-1">Atendimentos</h1>
-        <p class="text-secondary mb-0">Registro e acompanhamento dos atendimentos acadêmicos.</p>
+        <p class="text-secondary mb-0">Registro e acompanhamento dos atendimentos academicos.</p>
     </div>
     <button class="btn btn-success" type="button" onclick="novoAtendimento()">Novo atendimento</button>
 </div>
@@ -33,11 +33,11 @@ require __DIR__ . '/../layouts/header.php';
                     <input class="form-control" type="date" name="data_atendimento" required>
                 </div>
                 <div class="col-md-4">
-                    <label class="form-label">Horário *</label>
+                    <label class="form-label">Horario *</label>
                     <input class="form-control" type="time" name="horario_atendimento" required>
                 </div>
                 <div class="col-12">
-                    <label class="form-label">Descrição *</label>
+                    <label class="form-label">Descricao *</label>
                     <textarea class="form-control" name="descricao" rows="3" required></textarea>
                 </div>
             </div>
@@ -57,10 +57,10 @@ require __DIR__ . '/../layouts/header.php';
                     <th>ID</th>
                     <th>Pessoa</th>
                     <th>Tipo</th>
-                    <th>Responsável</th>
+                    <th>Responsavel</th>
                     <th>Data</th>
                     <th>Status</th>
-                    <th class="text-end">Ações</th>
+                    <th class="text-end">Acoes</th>
                 </tr>
             </thead>
             <tbody id="tabelaAtendimentos">
@@ -87,13 +87,13 @@ require __DIR__ . '/../layouts/header.php';
                         <select class="form-select" name="status" required>
                             <option value="aberto">Aberto</option>
                             <option value="em_andamento">Em andamento</option>
-                            <option value="concluido">Concluído</option>
+                            <option value="concluido">Concluido</option>
                         </select>
                     </div>
                     <div>
-                        <label class="form-label">Observação final</label>
+                        <label class="form-label">Observacao final</label>
                         <textarea class="form-control" name="observacao_final" rows="3"
-                            placeholder="Obrigatória ao concluir"></textarea>
+                            placeholder="Obrigatoria ao concluir"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -106,10 +106,12 @@ require __DIR__ . '/../layouts/header.php';
 </div>
 
 <script>
-    const formAtendimento = document.getElementById('formAtendimento');
-    const cardFormulario  = document.getElementById('cardFormulario');
+    var formAtendimento = document.getElementById('formAtendimento');
+    var cardFormulario = document.getElementById('cardFormulario');
 
-    const statusModal = () => bootstrap.Modal.getOrCreateInstance(document.getElementById('modalStatus'));
+    function statusModal() {
+        return bootstrap.Modal.getOrCreateInstance(document.getElementById('modalStatus'));
+    }
 
     function novoAtendimento() {
         cardFormulario.classList.remove('d-none');
@@ -121,9 +123,12 @@ require __DIR__ . '/../layouts/header.php';
         formAtendimento.reset();
     }
 
-    function labelRegistro(obj, ...keys) {
-        for (const key of keys) {
-            if (obj[key] !== undefined && obj[key] !== null) return obj[key];
+    // tenta achar o nome em diferentes chaves, porque eu mudei o nome dessas
+    // colunas algumas vezes no controller e nao quero quebrar se mudar de novo
+    function labelRegistro(obj) {
+        var chaves = Array.prototype.slice.call(arguments, 1);
+        for (var i = 0; i < chaves.length; i++) {
+            if (obj[chaves[i]] !== undefined && obj[chaves[i]] !== null) return obj[chaves[i]];
         }
         return '';
     }
@@ -135,7 +140,7 @@ require __DIR__ . '/../layouts/header.php';
         ]);
 
         const pessoas = AtendeLabApi.toList(pessoasResp).filter(p => p.status !== 'inativo');
-        const tipos   = AtendeLabApi.toList(tiposResp).filter(t => t.status !== 'inativo');
+        const tipos = AtendeLabApi.toList(tiposResp).filter(t => t.status !== 'inativo');
 
         document.getElementById('pessoaSelect').innerHTML =
             '<option value="">Selecione</option>' +
@@ -148,26 +153,24 @@ require __DIR__ . '/../layouts/header.php';
 
     async function carregarAtendimentos() {
         try {
-            const resposta      = await AtendeLabApi.get('atendimentos', 'listar');
-            const atendimentos  = AtendeLabApi.toList(resposta);
-            const tbody         = document.getElementById('tabelaAtendimentos');
+            const resposta = await AtendeLabApi.get('atendimentos', 'listar');
+            const atendimentos = AtendeLabApi.toList(resposta);
+            const tbody = document.getElementById('tabelaAtendimentos');
 
             if (!atendimentos.length) {
-                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4">Nenhum atendimento registrado.</td></tr>`;
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4">Nenhum atendimento registrado.</td></tr>';
                 return;
             }
 
-            tbody.innerHTML = atendimentos.map(a => {
-                const pessoa     = labelRegistro(a, 'pessoa_nome', 'pessoa', 'nome_pessoa');
-                const tipo       = labelRegistro(a, 'tipo_nome', 'tipo', 'tipo_atendimento', 'nome_tipo');
+            tbody.innerHTML = atendimentos.map(function (a) {
+                const pessoa = labelRegistro(a, 'pessoa_nome', 'pessoa', 'nome_pessoa');
+                const tipo = labelRegistro(a, 'tipo_nome', 'tipo', 'tipo_atendimento', 'nome_tipo');
                 const responsavel = labelRegistro(a, 'responsavel_nome', 'responsavel', 'usuario', 'usuario_nome', 'nome_usuario');
-                const data       = labelRegistro(a, 'data_atendimento', 'data');
+                const data = labelRegistro(a, 'data_atendimento', 'data');
 
-                const classeStatus = a.status === 'concluido'
-                    ? 'text-bg-success'
-                    : a.status === 'em_andamento'
-                    ? 'text-bg-warning'
-                    : 'text-bg-primary';
+                var classeStatus = 'text-bg-primary';
+                if (a.status === 'concluido') classeStatus = 'text-bg-success';
+                if (a.status === 'em_andamento') classeStatus = 'text-bg-warning';
 
                 return `<tr>
                     <td>${AtendeLabApi.escape(a.id)}</td>
@@ -189,7 +192,7 @@ require __DIR__ . '/../layouts/header.php';
         }
     }
 
-    formAtendimento.addEventListener('submit', async event => {
+    formAtendimento.addEventListener('submit', async function (event) {
         event.preventDefault();
         try {
             await AtendeLabApi.post('atendimentos', 'criar', new FormData(formAtendimento));
@@ -208,7 +211,7 @@ require __DIR__ . '/../layouts/header.php';
         statusModal().show();
     }
 
-    document.getElementById('formStatus').addEventListener('submit', async event => {
+    document.getElementById('formStatus').addEventListener('submit', async function (event) {
         event.preventDefault();
         try {
             await AtendeLabApi.post('atendimentos', 'alterarStatus', new FormData(event.target));
@@ -220,7 +223,7 @@ require __DIR__ . '/../layouts/header.php';
         }
     });
 
-    document.addEventListener('DOMContentLoaded', async () => {
+    document.addEventListener('DOMContentLoaded', async function () {
         try {
             await carregarCombos();
             await carregarAtendimentos();

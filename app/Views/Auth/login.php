@@ -1,5 +1,4 @@
 <?php
-declare(strict_types=1);
 $baseUrl = '/atendelab/public/';
 ?>
 <!DOCTYPE html>
@@ -12,11 +11,11 @@ $baseUrl = '/atendelab/public/';
     <style>
         :root { --al-green: #198754; --al-green-dark: #146c43; }
 
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body { font-family: system-ui, -apple-system, sans-serif; min-height: 100vh; display: flex; }
 
-        /* ── Painel esquerdo ── */
+        /* painel verde da esquerda */
         .al-side {
             width: 38%;
             background: var(--al-green);
@@ -47,7 +46,7 @@ $baseUrl = '/atendelab/public/';
         }
         .al-side .credits strong { opacity: 1; }
 
-        /* ── Painel direito ── */
+        /* painel do formulario */
         .al-form-area {
             flex: 1;
             background: #f5f6f8;
@@ -105,7 +104,6 @@ $baseUrl = '/atendelab/public/';
         .alert-success { background: #d1e7dd; color: #0a3622; border: 1px solid #a3cfbb; }
         .alert-danger  { background: #f8d7da; color: #58151c; border: 1px solid #f1aeb5; }
 
-        /* Mobile */
         @media (max-width: 767px) {
             body { flex-direction: column; }
             .al-side { width: 100%; min-height: auto; padding: 2rem 1.5rem; }
@@ -115,20 +113,17 @@ $baseUrl = '/atendelab/public/';
 </head>
 <body>
 
-<!-- Painel verde -->
 <div class="al-side">
     <div>
         <div class="logo-box">AL</div>
         <h1>AtendeLab</h1>
-        <p class="subtitle">Sistema de controle de atendimentos acadêmicos da UNIVILLE.</p>
+        <p class="subtitle">Sistema de controle de atendimentos academicos da UNIVILLE.</p>
     </div>
     <div class="credits">
-        Desenvolvido por <strong>Vinicius Werner</strong><br>
-        Trabalho acadêmico · Fábrica de Software
+        Trabalho academico da disciplina de Fábrica de Software
     </div>
 </div>
 
-<!-- Formulário -->
 <div class="al-form-area">
     <div class="al-form-box">
         <h2>Bem-vindo de volta</h2>

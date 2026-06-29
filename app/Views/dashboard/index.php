@@ -6,7 +6,7 @@ require __DIR__ . '/../layouts/header.php';
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
     <div>
         <h1 class="h3 mb-1">Dashboard</h1>
-        <p class="text-secondary mb-0">Resumo simples para validar a integração com o backend.</p>
+        <p class="text-secondary mb-0">Resumo basico pra ver se ta tudo se comunicando com o banco.</p>
     </div>
 </div>
 
@@ -39,8 +39,8 @@ require __DIR__ . '/../layouts/header.php';
 
 <div class="card border-0 shadow-sm">
     <div class="card-body">
-        <h2 class="h5">Acesso rápido</h2>
-        <p class="text-secondary">Use os módulos abaixo para cadastrar e consultar dados reais do banco.</p>
+        <h2 class="h5">Acesso rapido</h2>
+        <p class="text-secondary">Atalhos pros modulos do sistema.</p>
         <div class="d-flex flex-wrap gap-2">
             <a class="btn btn-success" href="<?= $baseUrl ?>?controller=frontend&action=pessoas">Gerenciar pessoas</a>
             <a class="btn btn-outline-success" href="<?= $baseUrl ?>?controller=frontend&action=tipos">Gerenciar tipos</a>
@@ -50,22 +50,24 @@ require __DIR__ . '/../layouts/header.php';
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', async () => {
-    const targets = {
+document.addEventListener('DOMContentLoaded', function () {
+    var targets = {
         pessoas: document.getElementById('totalPessoas'),
         tipos: document.getElementById('totalTipos'),
         atendimentos: document.getElementById('totalAtendimentos')
     };
 
-    for (const [controller, element] of Object.entries(targets)) {
-        try {
-            const response = await AtendeLabApi.get(controller, 'listar');
-            element.textContent = AtendeLabApi.toList(response).length;
-        } catch (error) {
-            element.textContent = '!';
-            element.title = error.message;
-        }
-    }
+    Object.keys(targets).forEach(function (controller) {
+        var elemento = targets[controller];
+        AtendeLabApi.get(controller, 'listar')
+            .then(function (resposta) {
+                elemento.textContent = AtendeLabApi.toList(resposta).length;
+            })
+            .catch(function (error) {
+                elemento.textContent = '!';
+                elemento.title = error.message;
+            });
+    });
 });
 </script>
 

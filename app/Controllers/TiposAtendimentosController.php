@@ -10,25 +10,20 @@ class TiposAtendimentosController
         $this->pdo = $pdo;
     }
 
-    private function json(array $dados, int $status = 200): void
+    private function json($dados, $status = 200)
     {
         http_response_code($status);
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode($dados, JSON_UNESCAPED_UNICODE);
     }
 
-    // LISTAR
-    public function listar(): void
+    public function listar()
     {
-        $sql = 'SELECT id, nome, descricao, status
-                FROM tipos_atendimentos
-                ORDER BY nome';
-
+        $sql = 'SELECT id, nome, descricao, status FROM tipos_atendimentos ORDER BY nome';
         $this->json($this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC));
     }
 
-    // BUSCAR POR ID
-    public function buscar(): void
+    public function buscar()
     {
         $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 
@@ -37,10 +32,7 @@ class TiposAtendimentosController
             return;
         }
 
-        $stmt = $this->pdo->prepare(
-            'SELECT id, nome, descricao, status
-             FROM tipos_atendimentos WHERE id = :id'
-        );
+        $stmt = $this->pdo->prepare('SELECT id, nome, descricao, status FROM tipos_atendimentos WHERE id = :id');
         $stmt->execute(['id' => $id]);
         $tipo = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -52,65 +44,56 @@ class TiposAtendimentosController
         $this->json($tipo);
     }
 
-    // CRIAR
-    public function criar(): void
+    public function criar()
     {
-        $nome      = trim($_POST['nome']      ?? '');
+        $nome = trim($_POST['nome'] ?? '');
         $descricao = trim($_POST['descricao'] ?? '');
-        $status    =      $_POST['status']    ?? 'ativo';
+        $status = $_POST['status'] ?? 'ativo';
 
         if ($nome === '') {
             $this->json(['erro' => 'Nome e obrigatorio.'], 422);
             return;
         }
 
-        if (!in_array($status, ['ativo', 'inativo'], true)) {
+        if ($status != 'ativo' && $status != 'inativo') {
             $this->json(['erro' => 'Status invalido.'], 422);
             return;
         }
 
-        $stmt = $this->pdo->prepare(
-            'INSERT INTO tipos_atendimentos (nome, descricao, status)
-             VALUES (:nome, :descricao, :status)'
-        );
+        $stmt = $this->pdo->prepare('INSERT INTO tipos_atendimentos (nome, descricao, status) VALUES (:nome, :descricao, :status)');
         $stmt->execute(compact('nome', 'descricao', 'status'));
 
         $this->json([
             'mensagem' => 'Tipo cadastrado com sucesso.',
-            'id'       => $this->pdo->lastInsertId()
+            'id' => $this->pdo->lastInsertId(),
         ], 201);
     }
 
-    // ATUALIZAR
-    public function atualizar(): void
+    public function atualizar()
     {
-        $id        = filter_var($_POST['id'] ?? null, FILTER_VALIDATE_INT);
-        $nome      = trim($_POST['nome']      ?? '');
+        $id = filter_var($_POST['id'] ?? null, FILTER_VALIDATE_INT);
+        $nome = trim($_POST['nome'] ?? '');
         $descricao = trim($_POST['descricao'] ?? '');
-        $status    =      $_POST['status']    ?? 'ativo';
+        $status = $_POST['status'] ?? 'ativo';
 
         if (!$id || $nome === '') {
             $this->json(['erro' => 'ID e nome sao obrigatorios.'], 422);
             return;
         }
 
-        if (!in_array($status, ['ativo', 'inativo'], true)) {
+        if ($status != 'ativo' && $status != 'inativo') {
             $this->json(['erro' => 'Status invalido.'], 422);
             return;
         }
 
-        $stmt = $this->pdo->prepare(
-            'UPDATE tipos_atendimentos
-             SET nome = :nome, descricao = :descricao, status = :status
-             WHERE id = :id'
-        );
+        $stmt = $this->pdo->prepare('UPDATE tipos_atendimentos SET nome = :nome, descricao = :descricao, status = :status WHERE id = :id');
         $stmt->execute(compact('id', 'nome', 'descricao', 'status'));
 
         $this->json(['mensagem' => 'Tipo atualizado com sucesso.']);
     }
 
-    // INATIVAR (não apaga fisicamente)
-    public function inativar(): void
+    // mesma ideia da pessoa, nao apaga, só inativa
+    public function inativar()
     {
         $id = filter_var($_POST['id'] ?? null, FILTER_VALIDATE_INT);
 
@@ -119,9 +102,7 @@ class TiposAtendimentosController
             return;
         }
 
-        $stmt = $this->pdo->prepare(
-            "UPDATE tipos_atendimentos SET status = 'inativo' WHERE id = :id"
-        );
+        $stmt = $this->pdo->prepare("UPDATE tipos_atendimentos SET status = 'inativo' WHERE id = :id");
         $stmt->execute(['id' => $id]);
 
         $this->json(['mensagem' => 'Tipo inativado com sucesso.']);

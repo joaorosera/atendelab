@@ -7,127 +7,153 @@ $baseUrl = '/atendelab/public/';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Entrar | AtendeLab</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        :root { --al-green: #198754; --al-green-dark: #146c43; }
-
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
-        body { font-family: system-ui, -apple-system, sans-serif; min-height: 100vh; display: flex; }
-
-        /* painel verde da esquerda */
-        .al-side {
-            width: 38%;
-            background: var(--al-green);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 3rem 2.5rem;
-            color: #fff;
-        }
-
-        .al-side .logo-box {
-            width: 56px; height: 56px;
-            background: rgba(255,255,255,.18);
-            border-radius: 14px;
-            display: grid; place-items: center;
-            font-size: 1.2rem; font-weight: 800;
-            letter-spacing: .04em;
-            margin-bottom: 1.5rem;
-        }
-
-        .al-side h1 { font-size: 2rem; font-weight: 700; margin-bottom: .4rem; }
-        .al-side .subtitle { opacity: .82; font-size: .95rem; line-height: 1.5; }
-
-        .al-side .credits {
-            font-size: .78rem;
-            opacity: .65;
-            line-height: 1.6;
-        }
-        .al-side .credits strong { opacity: 1; }
-
-        /* painel do formulario */
-        .al-form-area {
-            flex: 1;
-            background: #f5f6f8;
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: #f4f4f2;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 2rem 1.5rem;
+            min-height: 100vh;
         }
 
-        .al-form-box { width: min(100%, 400px); }
-
-        .al-form-box h2 { font-size: 1.45rem; font-weight: 700; margin-bottom: .3rem; color: #1a1a1a; }
-        .al-form-box .hint { font-size: .88rem; color: #6c757d; margin-bottom: 1.75rem; }
-
-        .al-form-box label { font-weight: 500; font-size: .9rem; color: #333; margin-bottom: .35rem; display: block; }
-
-        .al-form-box input {
+        .login-wrapper {
             width: 100%;
-            padding: .65rem .9rem;
-            border: 1px solid #d0d5dd;
-            border-radius: 8px;
-            font-size: .97rem;
-            outline: none;
-            transition: border-color .15s, box-shadow .15s;
-            background: #fff;
-            margin-bottom: 1rem;
-        }
-        .al-form-box input:focus {
-            border-color: var(--al-green);
-            box-shadow: 0 0 0 3px rgba(25,135,84,.15);
+            max-width: 420px;
+            padding: 1rem;
         }
 
-        .al-form-box .mb-last { margin-bottom: 1.5rem; }
+        .login-card {
+            background: #ffffff;
+            border: 1px solid #e5e5e3;
+            border-radius: 12px;
+            padding: 2.5rem 2rem;
+        }
 
-        .btn-entrar {
-            width: 100%;
-            padding: .72rem;
-            background: var(--al-green);
-            color: #fff;
-            border: none;
+        .login-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 2rem;
+        }
+
+        /* .login-brand-icon {
+            width: 36px;
+            height: 36px;
             border-radius: 8px;
-            font-size: 1rem;
+            background-color: #f4f4f2;
+            border: 1px solid #e5e5e3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
             font-weight: 600;
-            cursor: pointer;
-            transition: background .15s;
-        }
-        .btn-entrar:hover { background: var(--al-green-dark); }
+            color: #1a1a18;
+            flex-shrink: 0;
+        } */
 
-        .alert-box {
-            padding: .75rem 1rem;
-            border-radius: 8px;
-            font-size: .88rem;
+        .login-brand-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: #1a1a18;
+        }
+
+        .login-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1a1a18;
+            margin-bottom: 4px;
+        }
+
+        .login-subtitle {
+            font-size: 14px;
+            color: #888780;
+            margin-bottom: 2rem;
+        }
+
+        .login-field {
             margin-bottom: 1.25rem;
         }
-        .alert-success { background: #d1e7dd; color: #0a3622; border: 1px solid #a3cfbb; }
-        .alert-danger  { background: #f8d7da; color: #58151c; border: 1px solid #f1aeb5; }
 
-        @media (max-width: 767px) {
-            body { flex-direction: column; }
-            .al-side { width: 100%; min-height: auto; padding: 2rem 1.5rem; }
-            .al-side .credits { margin-top: 1.5rem; }
+        .login-field label {
+            display: block;
+            font-size: 13px;
+            color: #5f5e5a;
+            margin-bottom: 6px;
         }
+
+        .login-field input {
+            width: 100%;
+            height: 38px;
+            padding: 0 12px;
+            border: 1px solid #d3d1c7;
+            border-radius: 8px;
+            background: #fafafa;
+            color: #1a1a18;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+
+        .login-field input::placeholder { color: #b4b2a9; }
+
+        .login-field input:hover { border-color: #b4b2a9; }
+
+        .login-field input:focus {
+            border-color: #378add;
+            box-shadow: 0 0 0 3px rgba(55, 138, 221, 0.12);
+            background: #ffffff;
+        }
+
+        .login-btn {
+            width: 100%;
+            height: 38px;
+            border: none;
+            border-radius: 8px;
+            background-color: #1a1a18;
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-top: 0.5rem;
+            transition: opacity 0.15s;
+        }
+
+        .login-btn:hover { opacity: 0.85; }
+        .login-btn:active { opacity: 0.75; }
+
+        .login-footer {
+            font-size: 12px;
+            color: #b4b2a9;
+            text-align: center;
+            margin-top: 2rem;
+        }
+
+        .alert-box {
+            border-radius: 8px;
+            font-size: 13px;
+            padding: 10px 12px;
+            margin-bottom: 1.25rem;
+        }
+
+        .alert-success { background: #d1e7dd; color: #0a3622; border: 1px solid #a3cfbb; }
+        .alert-danger  { background: #fcebeb; color: #a32d2d; border: 1px solid #f09595; }
     </style>
 </head>
 <body>
 
-<div class="al-side">
-    <div>
-        <div class="logo-box">AL</div>
-        <h1>AtendeLab</h1>
-        <p class="subtitle">Sistema de controle de atendimentos academicos da UNIVILLE.</p>
-    </div>
-    <div class="credits">
-        Trabalho academico da disciplina de Fábrica de Software
-    </div>
-</div>
+<div class="login-wrapper">
+    <div class="login-card">
 
-<div class="al-form-area">
-    <div class="al-form-box">
-        <h2>Bem-vindo de volta</h2>
-        <p class="hint">Informe suas credenciais para acessar o sistema.</p>
+        <div class="login-brand">
+            <!-- <div class="login-brand-icon">AL</div> -->
+            <span class="login-brand-name">AtendeLab</span>
+        </div>
+
+        <h1 class="login-title">Bem-vindo de volta</h1>
+        <p class="login-subtitle">Informe suas credenciais para acessar o sistema.</p>
 
         <?php if (!empty($mensagem)): ?>
             <div class="alert-box alert-success">
@@ -142,16 +168,19 @@ $baseUrl = '/atendelab/public/';
         <?php endif; ?>
 
         <form method="post" action="<?= $baseUrl ?>?controller=auth&action=entrar">
-            <div>
+            <div class="login-field">
                 <label for="email">E-mail</label>
                 <input type="email" id="email" name="email" placeholder="seu@email.com" required autofocus>
             </div>
-            <div class="mb-last">
+            <div class="login-field">
                 <label for="senha">Senha</label>
                 <input type="password" id="senha" name="senha" placeholder="••••••••" required>
             </div>
-            <button class="btn-entrar" type="submit">Entrar</button>
+            <button class="login-btn" type="submit">Entrar</button>
         </form>
+
+        <p class="login-footer">Trabalho acadêmico — Fábrica de Software</p>
+
     </div>
 </div>
 
